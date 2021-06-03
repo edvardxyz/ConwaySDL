@@ -45,12 +45,12 @@ int main (int argc, char *argv[]){
         return 1;
     }
 
-    struct cell cells[ROWCELLS][COLCELLS];
     int sleepms = atoi(argv[1]);
     int pct = atoi(argv[2]);
     srand(time(0));
     Uint32 fps_frames = 0;
     SDL_Event event;
+    struct cell cells[ROWCELLS][COLCELLS];
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
     SDL_SetRenderDrawColor(renderer, 255,255,255,255);
@@ -82,7 +82,7 @@ int main (int argc, char *argv[]){
                 break;
             }
             else if (event.type == SDL_MOUSEBUTTONDOWN){
-                cells[event.button.y/6-1][event.button.x/6-1].alive = 1;
+                cells[event.button.y/6-1][event.button.x/6-1].alive = cells[event.button.y/6-1][event.button.x/6-1].alive ? 0 : 1;
             }
         }
 
@@ -138,11 +138,10 @@ int main (int argc, char *argv[]){
             }
             fps_frames++;
         }
-
         SDL_RenderPresent(renderer);
-        if(currentTime > 30000){
-            break;
-        }
+        //if(currentTime > 30000){
+        //   break;
+        // }
     }
     SDL_DestroyRenderer(renderer);
     SDL_Quit();
