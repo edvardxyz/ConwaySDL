@@ -2,6 +2,7 @@
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keyboard.h>
+#include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_surface.h>
@@ -30,11 +31,11 @@ int main (int argc, char *argv[]){
         printf("Failed to init SDL: %s \n", SDL_GetError());
         return 1;
     }
-    if(argc != 3){
-        fprintf(stderr, "Program needs 2 arguments.\nFirst is refresh rate in ms.\nSecond is %% change to fill cell.\nExample: ./conway 100 30\n");
+    if(strcmp(argv[1], "-h") == 0){
+        fprintf(stderr, "To start random world generation give 2 arguments.\nFirst is refresh rate in ms.\nSecond is %% change to fill cell.\nExample: ./conway 100 30\nStart with 1(refresh rate ms) or without argument(s) and click with mouse to spawn alive cells\nThen enter to start");
         return 1;
     }
-    SDL_Window *window = SDL_CreateWindow("conway", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Window *window = SDL_CreateWindow("conway", 0, 0, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
     if(window == NULL ){
         printf("Window could not be created!: %s \n", SDL_GetError());
         return 1;
@@ -45,8 +46,15 @@ int main (int argc, char *argv[]){
         return 1;
     }
 
-    int sleepms = atoi(argv[1]);
-    int pct = atoi(argv[2]);
+    int sleepms = 100;
+    int pct;
+    if(argc > 2){
+        sleepms = atoi(argv[1]);
+        pct = atoi(argv[2]);
+    }else if (argc == 1){
+        sleepms = atoi(argv[1]);
+    }
+
     srand(time(0));
     Uint32 fps_frames = 0;
     SDL_Event event;
@@ -66,10 +74,31 @@ int main (int argc, char *argv[]){
             cells[i][j].rect.y = y;
             cells[i][j].rect.w = cells[i][j].rect.h = SQSIZE;
 
-            int n = rand() % 100;
-            if(n < pct) {
-                cells[i][j].alive = 1;
+            if(argc == 3){
+                int n = rand() % 100;
+                if(n < pct) {
+                    cells[i][j].alive = 1;
+                }
             }
+        }
+    }
+
+    while(argc < 3){
+        if(SDL_WaitEvent(&event)){
+            if(event.type == SDL_QUIT){
+                break;
+            }
+            else if (event.type == SDL_MOUSEBUTTONDOWN){
+                cells[event.button.y/6-1][event.button.x/6-1].alive = cells[event.button.y/6-1][event.button.x/6-1].alive ? 0 : 1;
+                if(cells[event.button.y/6-1][event.button.x/6-1].alive == 0){
+                    SDL_SetRenderDrawColor(renderer, 0,0,0,0);
+                    SDL_RenderFillRect(renderer, &cells[event.button.y/6-1][event.button.x/6-1].rect);
+                } else {
+                    SDL_SetRenderDrawColor(renderer, 255,255,255,255);
+                    SDL_RenderFillRect(renderer, &cells[event.button.y/6-1][event.button.x/6-1].rect);
+                }
+            }
+            SDL_RenderPresent(renderer);
         }
     }
 
